@@ -5,6 +5,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -135,8 +136,18 @@ public class FASTAReader {
 	 * pattern when one has been found to be different.
 	 */
 	private boolean compareImproved(byte[] pattern, int position) throws FASTAException {
-		// TODO
-		return false;
+		// Me baso en el método compare ya programado y añado un break
+			if (position + pattern.length > validBytes) {
+				throw new FASTAException("Pattern goes beyond the end of the file.");
+			}
+			boolean match = true;
+			for (int i = 0; i < pattern.length; i++) {
+				if (pattern[i] != content[position + i]) {
+					match = false;
+					break;
+				}
+			}
+			return match;
 	}
 
 	/*
@@ -148,8 +159,17 @@ public class FASTAReader {
 	 * ones present in the indicated position.
 	 */
 	private int compareNumErrors(byte[] pattern, int position) throws FASTAException {
-		// TODO
-		return -1;
+		// Igual que compare pero no devuelve boolean sino un int con el nºde errores
+		if (position + pattern.length > validBytes) {
+			throw new FASTAException("Pattern goes beyond the end of the file.");
+		}
+		int nErrors= 0;
+		for (int i = 0; i < pattern.length; i++) {
+			if (pattern[i] != content[position + i]) {
+				nErrors ++;
+			}
+		}
+		return nErrors;
 	}
 
 	/**
@@ -162,8 +182,18 @@ public class FASTAReader {
 	 *         pattern in the data.
 	 */
 	public List<Integer> search(byte[] pattern) {
-		// TODO
-		return null;
+		// Creo una lista integer con las primeras posiciones de patrón encontrado en los datos
+		List<Integer> posPatronEncontrado =new ArrayList<>();
+		//Recorro el array content y uso el método compare
+		for(int i=0; i<this.content.length; i++)
+			try {
+				if(compareImproved(pattern,i)== true)
+					posPatronEncontrado.add(i);
+			} catch (FASTAException e) {
+				// quito esto para que no me aparezca e.printStackTrace();
+			}
+			
+		return posPatronEncontrado;
 	}
 
 	/**
@@ -179,8 +209,20 @@ public class FASTAReader {
 	 *         pattern (with up to 1 errors) in the data.
 	 */
 	public List<Integer> searchSNV(byte[] pattern) {
-		// TODO
-		return null;
+		// Me baso en el search anterior
+		// Creo una lista integer con las primeras posiciones de patrón encontrado en los datos
+		List<Integer> posPatronEncontradoSNV =new ArrayList<>();
+		//Recorro el array content y uso el método compare
+		for(int i=0; i<this.content.length; i++)
+			try {
+				if(compareNumErrors(pattern,i)== 0 || compareNumErrors(pattern,i)== 1)
+					posPatronEncontradoSNV.add(i);
+			} catch (FASTAException e) {
+				// quito esto para que no me aparezca e.printStackTrace();
+			}
+			
+		return posPatronEncontradoSNV;
+	
 	}
 
 	public static void main(String[] args) {
@@ -190,7 +232,7 @@ public class FASTAReader {
 			return;
 		System.out.println("Tiempo de apertura de fichero: " + (System.nanoTime() - t1));
 		long t2 = System.nanoTime();
-		List<Integer> posiciones = reader.search(args[1].getBytes());
+		List<Integer> posiciones = reader.searchSNV(args[1].getBytes());
 		System.out.println("Tiempo de búsqueda: " + (System.nanoTime() - t2));
 		if (posiciones.size() > 0) {
 			for (Integer pos : posiciones)
