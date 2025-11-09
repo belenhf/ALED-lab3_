@@ -47,7 +47,7 @@ public class FASTAReader {
 	private void readFile(String fileName) throws IOException {
 		File f = new File(fileName);
 		FileInputStream fis = new FileInputStream(f);
-		DataInput fid = new DataInputStream(fis);
+		DataInput fid = new DataInputStream(fis);//Abre el fichero que se le pasa
 		long len = (int) fis.getChannel().size();
 		if (len > Integer.MAX_VALUE) {
 			fis.close();
@@ -67,7 +67,7 @@ public class FASTAReader {
 			bytesRead += numRead;
 		}
 		fis.close();
-		this.content = content;
+		this.content = content;//Coge letra por letra y las mete en un array
 		this.validBytes = bytesRead;
 	}
 
@@ -185,13 +185,14 @@ public class FASTAReader {
 		// Creo una lista integer con las primeras posiciones de patrón encontrado en los datos
 		List<Integer> posPatronEncontrado =new ArrayList<>();
 		//Recorro el array content y uso el método compare
-		for(int i=0; i<this.content.length; i++)
+		for(int i=0; i<this.content.length; i++) {
 			try {
 				if(compareImproved(pattern,i)== true)
 					posPatronEncontrado.add(i);
 			} catch (FASTAException e) {
-				// quito esto para que no me aparezca e.printStackTrace();
+				break;// quito esto para que no me aparezca e.printStackTrace();
 			}
+		}
 			
 		return posPatronEncontrado;
 	}
@@ -213,25 +214,30 @@ public class FASTAReader {
 		// Creo una lista integer con las primeras posiciones de patrón encontrado en los datos
 		List<Integer> posPatronEncontradoSNV =new ArrayList<>();
 		//Recorro el array content y uso el método compare
-		for(int i=0; i<this.content.length; i++)
-			try {
-				if(compareNumErrors(pattern,i)== 0 || compareNumErrors(pattern,i)== 1)
+		for(int i=0; i<this.content.length; i++) {
+			try {//intento
+				if(compareNumErrors(pattern,i)<= 1) // compareNumErrors(pattern,i)=0|| compareNumErrors(pattern,i)== 1)
 					posPatronEncontradoSNV.add(i);
 			} catch (FASTAException e) {
-				// quito esto para que no me aparezca e.printStackTrace();
+				break;// terminará el bucle for // quito esto para que no me aparezca e.printStackTrace();
 			}
+		}
 			
 		return posPatronEncontradoSNV;
 	
 	}
 
 	public static void main(String[] args) {
-		long t1 = System.nanoTime();
+		long t1 = System.nanoTime();//A que hora empieza
+		//Crea un objeto de fastareader pasandole como arg un un fichero de texto,
+		//lee el fichero de texto y lo convierte en array de bytes.
 		FASTAReader reader = new FASTAReader(args[0]);
+		//si no me pasas 2 argumentos no voy a hacer nada
 		if (args.length == 1)
 			return;
 		System.out.println("Tiempo de apertura de fichero: " + (System.nanoTime() - t1));
-		long t2 = System.nanoTime();
+		long t2 = System.nanoTime(); //tiempo para ver cuanto tarda la busqúeda
+		//args[1] es el pattern que buscas, lo convierte en array de bytes con el met getBytes
 		List<Integer> posiciones = reader.searchSNV(args[1].getBytes());
 		System.out.println("Tiempo de búsqueda: " + (System.nanoTime() - t2));
 		if (posiciones.size() > 0) {
