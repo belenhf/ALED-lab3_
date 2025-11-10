@@ -89,10 +89,53 @@ public class FASTAReaderSuffixes extends FASTAReader {
 	
 		
 		//Comparación iterativa
-		while(found==false || hi-lo > 1 )
-		int posSuffix= suffixes[m];
-		compare
-		
+		while(found==false && hi-lo > 1 ) {
+			int m = (lo + hi)/2;
+			int posSuffix= suffixes[m].suffixIndex;
+			
+			while(posSuffix+index<content.length && index< pattern.length && pattern[index] == content[posSuffix + index])
+				index++;
+			
+			//si ha habido coincidencia
+			if(index == pattern.length) {
+				encontradas.add(posSuffix);
+				found=true;	
+				
+				//hacia atrás
+				int i = 1;
+				do {
+					index = 0;
+					posSuffix = suffixes[m-i].suffixIndex;
+					while(posSuffix+index<content.length && index< pattern.length && pattern[index] == content[posSuffix + index])
+						index++;
+					if(index == pattern.length)
+						encontradas.add(posSuffix);
+					i++;
+				} while(index == pattern.length);
+			
+			 	//hacia delante
+				i=1;
+				do {
+					index = 0;
+					posSuffix = suffixes[m+i].suffixIndex;
+					while(posSuffix+index<content.length && index< pattern.length && pattern[index] == content[posSuffix + index])
+						index++;
+					if(index == pattern.length)
+						encontradas.add(posSuffix);
+					i++;
+				} while(index == pattern.length);//El bucle se mantiene mientras que en el último haya habido coincidencia total
+			}
+			
+			
+			//si no ha habido coincidencia
+			else {
+				if(pattern[index] <content[posSuffix + index])
+					hi=m--;
+				else
+					lo=m++;
+				index = 0;	
+			}
+		}
 		
 		return encontradas;
 	}
